@@ -1,39 +1,72 @@
-# Introduction to Network Science
+# Introduction
 
-This is the introduction chapter to Network Science.
+Companion notes and Python examples for [Network Science](http://networksciencebook.com/) by Albert-László Barabási.
 
-## What is Network Science?
+---
 
-Network science is an academic field that studies complex networks such as telecommunication networks, computer networks, biological networks, cognitive and semantic networks, and social networks. The field draws on theories and methods from mathematics, physics, biology, computer science, and sociology.
+## About This Book
 
-## Key Concepts
+This is a hands-on companion to Barabási's *Network Science* textbook. While the original book provides the theoretical foundations, these notes focus on **practical implementation** using Python.
 
-- **Nodes (Vertices)**: The fundamental units of a network
-- **Edges (Links)**: Connections between nodes
-- **Network Topology**: The arrangement of nodes and edges in a network
-- **Network Properties**: Characteristics that describe the structure and behavior of networks
+Each chapter includes:
+- Key concepts and definitions from the textbook
+- Working code examples you can run and modify
+- Visualizations to build intuition
+- Exercises to test your understanding
 
-## Why Study Networks?
+## Python Libraries
 
-Networks are everywhere in our modern world:
-- Social networks connect people
-- Infrastructure networks (power grids, transportation systems)
-- Biological networks (protein interactions, neural connections)
-- Information networks (the internet, citation networks)
+We primarily use these graph libraries:
 
-Understanding networks helps us:
-- Predict system behavior
-- Identify influential nodes
-- Optimize network design
-- Detect anomalies and failures
+| Library | Use Case |
+|---------|----------|
+| **[rustworkx](https://www.rustworkx.org/)** | Primary library — fast, Rust-based graph algorithms |
+| **[NetworkX](https://networkx.org/)** | Secondary — extensive algorithms, great documentation |
+| **[igraph](https://python.igraph.org/)** | Occasionally — specialized algorithms, C-based performance |
 
-## What You'll Learn
+### Why rustworkx?
 
-Throughout this book, you'll explore:
-1. Fundamental concepts of graph theory
-2. Network metrics and measurements
-3. Community detection algorithms
-4. Network dynamics and evolution
-5. Real-world applications
+`rustworkx` offers excellent performance for large graphs while maintaining a Pythonic API. It's particularly well-suited for computationally intensive network analysis.
 
-Let's begin our journey into the fascinating world of networks!
+```python
+import rustworkx as rx
+
+# Create a graph
+G = rx.PyGraph()
+G.add_nodes_from([0, 1, 2, 3])
+G.add_edges_from_no_data([(0, 1), (1, 2), (2, 3)])
+
+# Compute shortest paths
+paths = rx.all_pairs_shortest_path_lengths(G)
+```
+
+## Getting Started
+
+Install the required packages:
+
+```bash
+pip install rustworkx networkx matplotlib numpy
+```
+
+Optional (for specific chapters):
+
+```bash
+pip install python-igraph scipy
+```
+
+## Chapters
+
+1. **Introduction** — You are here
+2. **Graph Theory** — Degree, paths, distances, bipartite graphs
+3. **Random Networks** — Erdős-Rényi model, giant component
+4. **Scale-Free Networks** — Power laws, preferential attachment
+5. **The Barabási-Albert Model** — Growing networks
+6. **Evolving Networks** — Network dynamics
+7. **Degree Correlations** — Assortativity
+8. **Network Robustness** — Failures and attacks
+9. **Communities** — Detection algorithms
+10. **Spreading Phenomena** — Epidemics, information diffusion
+
+---
+
+*These notes accompany [Network Science](http://networksciencebook.com/) by Albert-László Barabási*

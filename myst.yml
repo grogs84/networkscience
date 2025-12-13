@@ -1,0 +1,24 @@
+version: 1
+project:
+  title: Network Science
+  authors:
+    - name: Matt Grogan
+  copyright: '2025'
+  github: grogs84/networkscience
+  bibliography:
+    - references.bib
+  exports:
+    - format: pdf
+      template: plain_latex_book
+      output: exports/book.pdf
+  toc:
+    - file: README.md
+    - file: content/intro.md
+    # - file: content/chapter1.md
+    # - file: content/chapter2.md
+    - file: content/rChapter2.md
+    # - file: rChapter2_clean.ipynb
+site:
+  options:
+    folders: true
+  template: book-theme
