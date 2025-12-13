@@ -40,9 +40,14 @@ degree_centrality = nx.degree_centrality(G)
 betweenness_centrality = nx.betweenness_centrality(G)
 closeness_centrality = nx.closeness_centrality(G)
 
-# Find the most central node
-most_central = max(degree_centrality, key=degree_centrality.get)
-print(f"Most central node (by degree): {most_central}")
+# Find the most central nodes by different measures
+most_central_degree = max(degree_centrality, key=degree_centrality.get)
+most_central_betweenness = max(betweenness_centrality, key=betweenness_centrality.get)
+most_central_closeness = max(closeness_centrality, key=closeness_centrality.get)
+
+print(f"Most central node (by degree): {most_central_degree}")
+print(f"Most central node (by betweenness): {most_central_betweenness}")
+print(f"Most central node (by closeness): {most_central_closeness}")
 ```
 
 ## Exercises
