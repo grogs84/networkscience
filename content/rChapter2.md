@@ -9,6 +9,7 @@ Companion notes for [Network Science](http://networksciencebook.com/) by Albert-
 - **2.3** Degree, Average Degree, Degree Distribution
 - **2.7** Bipartite Graphs and Projections
 - **2.8** Paths and Distances
+- **2.9** Clustering Coefficient
 
 ---
 
@@ -214,6 +215,69 @@ print(f"Average path length ⟨d⟩ = {avg_d:.3f}")
 
 ---
 
+## 2.9 Clustering Coefficient
+
+The clustering coefficient captures the degree to which the neighbors of a given node link to each other.
+
+### Key Definitions
+
+| Term | Formula | Description |
+|------|---------|-------------|
+| **Local Clustering Coefficient** | $C_i = \frac{2 L_i}{k_i (k_i - 1)}$ | Fraction of possible edges between node $i$'s neighbors that actually exist |
+| **$L_i$** | — | Number of edges between neighbors of node $i$ |
+| **$k_i$** | — | Degree of node $i$ |
+| **Average Clustering Coefficient** | $\langle C \rangle = \frac{1}{N} \sum_{i=1}^{N} C_i$ | Mean clustering coefficient across all nodes |
+
+### Local Clustering Coefficient
+
+For a node $i$ with degree $k_i$, the local clustering coefficient measures how close its neighbors are to forming a complete graph (clique):
+
+```python
+from itertools import combinations
+import math
+
+def clustering_coefficient(G, n):
+    """Calculate the local clustering coefficient for node n."""
+    neighbors = G.neighbors(n)
+    k = len(neighbors)
+    
+    if k < 2:
+        return 0.0
+    
+    # Count edges between neighbors
+    edges_between_neighbors = sum(
+        G.has_edge(u, v) for u, v in combinations(neighbors, 2)
+    )
+    
+    # Maximum possible edges between neighbors
+    possible_edges = math.comb(k, 2)
+    
+    return edges_between_neighbors / possible_edges
+```
+
+### Average Clustering Coefficient
+
+The average clustering coefficient characterizes the overall tendency of nodes to cluster together:
+
+```python
+def average_clustering_coefficient(G):
+    """Calculate the average clustering coefficient of the graph."""
+    N = G.num_nodes()
+    return sum(clustering_coefficient(G, i) for i in G.node_indexes()) / N
+
+avg_C = average_clustering_coefficient(G)
+print(f"Average clustering coefficient ⟨C⟩ = {avg_C:.3f}")
+```
+
+### Interpretation
+
+- $C_i = 0$: None of node $i$'s neighbors are connected to each other
+- $C_i = 1$: All of node $i$'s neighbors are connected (form a clique)
+- High $\langle C \rangle$: Network has strong local clustering (common in social networks)
+- Low $\langle C \rangle$: Neighbors rarely connect (common in random networks)
+
+---
+
 ## Summary
 
 | Section | Key Concepts |
@@ -221,6 +285,7 @@ print(f"Average path length ⟨d⟩ = {avg_d:.3f}")
 | **2.3** | Degree, average degree, degree distribution |
 | **2.7** | Bipartite graphs and projections |
 | **2.8** | Paths, shortest paths, diameter, cycles, Eulerian/Hamiltonian paths, average path length |
+| **2.9** | Local clustering coefficient, average clustering coefficient |
 
 ---
 
