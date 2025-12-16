@@ -7,6 +7,7 @@ Companion notes for [Network Science](http://networksciencebook.com/) by Albert-
 ## Topics Covered
 
 - **2.3** Degree, Average Degree, Degree Distribution
+- **2.4** Adjacency Matrix
 - **2.7** Bipartite Graphs and Projections
 - **2.8** Paths and Distances
 - **2.9** Clustering Coefficient
@@ -59,6 +60,86 @@ def degree_distribution(G):
 
 p_k = degree_distribution(G)
 print(f"Degree distribution: {p_k}")
+```
+
+---
+
+## 2.4 Adjacency Matrix
+
+For mathematical purposes we often represent a network through its **adjacency matrix**. The adjacency matrix of a network with $N$ nodes has $N$ rows and $N$ columns, with elements:
+
+- $A_{ij} = 1$ if there is a link pointing from node $j$ to node $i$
+- $A_{ij} = 0$ if nodes $i$ and $j$ are not connected
+
+### Creating a Graph from an Adjacency Matrix
+
+```python
+import numpy as np
+import rustworkx as rx
+
+# Define adjacency matrix
+A = np.array([
+    [0, 1, 1, 0],
+    [1, 0, 1, 1],
+    [1, 1, 0, 0],
+    [0, 1, 0, 0]
+], dtype=float)
+
+# Create graph from adjacency matrix
+G = rx.PyGraph.from_adjacency_matrix(A)
+```
+
+### Degree from Adjacency Matrix
+
+**Undirected graphs**: The degree of node $i$ can be computed by summing row or column $i$:
+
+$$k_i = \sum_{j=1}^{N} A_{ij} = \sum_{j=1}^{N} A_{ji}$$
+
+```python
+# Degree for each node (sum along rows or columns)
+ki = np.sum(A, axis=1)
+print(f"Degree for nodes: {ki}")
+```
+
+**Directed graphs**: In-degree and out-degree are computed separately:
+
+$$k_i^{in} = \sum_{j=1}^{N} A_{ij} \qquad k_i^{out} = \sum_{j=1}^{N} A_{ji}$$
+
+```python
+# For directed graphs
+in_degrees = np.sum(A, axis=0)   # sum columns
+out_degrees = np.sum(A, axis=1)  # sum rows
+```
+
+### Trace Tricks
+
+Matrix powers of the adjacency matrix reveal important network properties:
+
+| Expression | Meaning |
+|------------|--------|
+| $A^2_{ii}$ | Number of walks of length 2 starting and ending at node $i$ |
+| $A^N_{ii}$ | Number of walks of length $N$ starting and ending at node $i$ |
+| $\text{Tr}(A^3) / 6$ | Number of triangles in an undirected graph |
+
+```python
+# Get adjacency matrix
+A = rx.adjacency_matrix(G)
+
+# Walks of length 2 for each node (diagonal of A²)
+walks_2 = np.diag(A @ A)
+print(f"Walks of length 2: {walks_2}")
+
+# Count triangles in undirected graph
+A3 = np.linalg.matrix_power(A, 3)
+num_triangles = np.trace(A3) // 6
+print(f"Number of triangles: {num_triangles}")
+```
+
+```python
+# Walks of length N for each node
+length = 3
+for node, walks in zip(G.node_indexes(), np.diagonal(np.linalg.matrix_power(A, length))):
+    print(f"Node {node} has {walks} walks of length {length}")
 ```
 
 ---
@@ -283,6 +364,7 @@ print(f"Average clustering coefficient ⟨C⟩ = {avg_C:.3f}")
 | Section | Key Concepts |
 |---------|--------------|
 | **2.3** | Degree, average degree, degree distribution |
+| **2.4** | Adjacency matrix, degree from matrix, trace tricks, counting triangles |
 | **2.7** | Bipartite graphs and projections |
 | **2.8** | Paths, shortest paths, diameter, cycles, Eulerian/Hamiltonian paths, average path length |
 | **2.9** | Local clustering coefficient, average clustering coefficient |
