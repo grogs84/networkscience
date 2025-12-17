@@ -23,7 +23,7 @@ We primarily use these graph libraries:
 | Library | Use Case |
 |---------|----------|
 | **[rustworkx](https://www.rustworkx.org/)** | Primary library — fast, Rust-based graph algorithms |
-| **[NetworkX](https://networkx.org/)** | Secondary — extensive algorithms, great documentation |
+| **[networkX](https://networkx.org/)** | Secondary — extensive algorithms, great documentation |
 | **[igraph](https://python.igraph.org/)** | Occasionally — specialized algorithms, C-based performance |
 
 ### Why rustworkx?
