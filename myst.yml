@@ -14,11 +14,20 @@ project:
   toc:
     - file: README.md
     - file: content/intro.md
-    # - file: content/chapter1.md
-    # - file: content/chapter2.md
-    - file: content/rChapter2.md
-    # - file: rChapter2_clean.ipynb
+    - file: content/Chapter2.md
+
 site:
+  template: book-theme
+  title: Network Science
   options:
     folders: true
-  template: book-theme
+    hide_footer_badge: true
+    hide_outline: false
+    # logo: static/ns-logo.svg        # <- your logo file (example path)
+    # logo_dark: static/ns-logo-dark.svg   # optional
+    logo_text: "Network Science with Rustworkx"    
+    logo_url: "https://github.com/grogs84/networkscience"  # or "/"
+  parts:
+    primary_sidebar_footer: ""
+  nav: []
+  footer: "© 2025 Matt Grogan"
