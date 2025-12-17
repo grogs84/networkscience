@@ -2,6 +2,8 @@
 
 Companion notes for [Network Science](http://networksciencebook.com/) by Albert-László Barabási.
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/grogs84/networkscience/blob/main/notebooks/rChapter2.ipynb)
+
 ---
 
 ## Topics Covered
