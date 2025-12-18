@@ -12,7 +12,7 @@ project:
       template: plain_latex_book
       output: exports/book.pdf
   toc:
-    - file: README.md
+    # - file: README.md
     - file: content/intro.md
     - file: content/Chapter2.md
     - file: content/Chapter3.md

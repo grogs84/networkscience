@@ -50,15 +50,14 @@ print(f"Average degree ⟨k⟩ = {avg_degree}")
 The degree distribution $p_k$ gives the probability that a randomly selected node has degree $k$:
 
 ```python
-from collections import Counter
 import numpy as np
 
 def degree_distribution(G):
     """Calculate the degree distribution of a graph."""
-    degrees = [G.degree(n) for n in G.node_indexes()]
-    counts = Counter(degrees)
+    degrees = np.array([G.degree(n) for n in G.node_indexes()])
+    unique_degrees, counts = np.unique(degrees, return_counts=True)
     N = len(degrees)
-    return {k: count / N for k, count in sorted(counts.items())}
+    return {int(k): count / N for k, count in zip(unique_degrees, counts)}
 
 p_k = degree_distribution(G)
 print(f"Degree distribution: {p_k}")
