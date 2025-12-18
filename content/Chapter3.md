@@ -11,6 +11,8 @@ Companion notes for [Network Science](http://networksciencebook.com/) by Albert-
 - **3.2** The Random Network Model
 - **3.3** Number of Links
 - **3.4** Degree Distribution (Binomial & Poisson)
+- **3.5** The Evolution of a Random Network
+- **Box 3.5** Network Evolution in Graph Theory
 
 ---
 
@@ -176,6 +178,169 @@ The Poisson approximation becomes exact in the limit $N \to \infty$ with $\langl
 
 ---
 
+## 3.5 The Evolution of a Random Network
+
+One would expect that the largest component grows gradually from $N_G = 1$ to $N_G = N$ as $\langle k \rangle$ increases from $0$ to $N-1$. Yet, this is not the case: $N_G/N$ remains zero for small $\langle k \rangle$, indicating the lack of a large cluster. Once $\langle k \rangle$ exceeds a critical value, $N_G/N$ increases, signaling the rapid emergence of a large cluster called the **giant component**.
+
+### ER Graph Regimes
+
+The relationship $\langle k \rangle = p(N-1) \approx pN$ for large $N$ gives us key thresholds:
+
+| Regime | Condition | Description |
+|--------|-----------|-------------|
+| **Subcritical** | $\langle k \rangle < 1$ ($p < 1/N$) | No giant component |
+| **Critical** | $\langle k \rangle = 1$ ($p = 1/N$) | Critical point |
+| **Supercritical** | $\langle k \rangle > 1$ ($p > 1/N$) | Giant component emerges |
+| **Connected** | $\langle k \rangle > \ln N$ ($p > \ln N / N$) | Graph becomes connected w.h.p. |
+
+```python
+import rustworkx as rx
+
+def largest_component_fraction(G):
+    """Return the fraction of nodes in the largest connected component."""
+    largest = max(rx.connected_components(G), key=len)
+    return len(largest) / G.num_nodes()
+
+N = 100
+regimes = [
+    ("subcritical",   0.5,  "p < 1/N"),
+    ("critical",      1.0,  "p = 1/N"),
+    ("supercritical", 3.75, "p > 1/N"),
+    ("connected",     5.25, "p > ln(N)/N"),
+]
+
+for label, avg_degree, threshold in regimes:
+    p = avg_degree / (N - 1)
+    G = rx.undirected_gnp_random_graph(N, p, seed=42)
+    gcc = largest_component_fraction(G)
+    print(f"{label:>13} | ⟨k⟩={avg_degree:<4} | GCC={gcc:.2f}")
+```
+
+---
+
+## Box 3.5: Network Evolution in Graph Theory
+
+When referring to *threshold probabilities*, we mean the emergence of **specific finite subgraphs** (motifs) as the network grows.
+
+In the Erdős–Rényi model with $p(N) \sim N^{z}$ where $z < 0$, a *threshold* corresponds to the value of $z$ at which a given subgraph appears with high probability as $N \to \infty$.
+
+### The Organizing Principle
+
+A subgraph $H$ appears when the expected number of copies of $H$ transitions from going to zero to diverging as $N \to \infty$.
+
+### Threshold for Paths of Length 2
+
+Consider a **path of length 2** (3 nodes, 2 edges):
+
+- Number of ways to choose 3 nodes: $\sim N^3$
+- Probability the two required edges exist: $p^2 \sim N^{2z}$
+
+Expected count scales as:
+
+$$\mathbb{E}[\text{paths of length 2}] \sim N^{3 + 2z}$$
+
+Setting $3 + 2z = 0$ gives $z = -3/2$.
+
+### Threshold Summary
+
+| $z$ value | What emerges |
+|-----------|--------------|
+| $z < -2$ | No edges |
+| $z = -2$ | Isolated edges appear |
+| $-2 < z < -3/2$ | Isolated edges dominate |
+| $z = -3/2$ | Paths of length 2 appear |
+| $-3/2 < z < -1$ | Small trees emerge |
+| $z = -1$ | Trees of all orders and cycles appear |
+
+### Trees of Order k
+
+A tree of order $k$ has $k$ nodes and $k-1$ edges. The threshold exponent is:
+
+$$z = -\frac{k}{k-1}$$
+
+Examples:
+- $k = 3 \Rightarrow z = -3/2$
+- $k = 4 \Rightarrow z = -4/3$
+
+### Motif Detection Functions
+
+```python
+from itertools import combinations
+
+def exists_edge(G):
+    """Check if any edge exists."""
+    return G.num_edges() > 0
+
+def exists_wedge_len2(G):
+    """Check if a path of length 2 exists (node with degree >= 2)."""
+    return any(G.degree(v) >= 2 for v in G.node_indices())
+
+def exists_3star(G):
+    """Check if a 3-star (K_{1,3}) exists."""
+    return any(G.degree(v) >= 3 for v in G.node_indices())
+
+def exists_4star(G):
+    """Check if a 4-star (K_{1,4}) exists."""
+    return any(G.degree(v) >= 4 for v in G.node_indices())
+
+def exists_triangle(G):
+    """Check if a triangle exists."""
+    nbrs = [set(G.neighbors(i)) for i in G.node_indices()]
+    for u, v in G.edge_list():
+        if nbrs[u].intersection(nbrs[v]):
+            return True
+    return False
+
+def exists_K4(G):
+    """Check if K4 (complete graph on 4 nodes) exists."""
+    nbrs = [set(G.neighbors(i)) for i in G.node_indices()]
+    edge_set = {tuple(sorted(e)) for e in G.edge_list()}
+    
+    for u, v in G.edge_list():
+        common = nbrs[u].intersection(nbrs[v])
+        if len(common) < 2:
+            continue
+        for a, b in combinations(common, 2):
+            if (min(a, b), max(a, b)) in edge_set:
+                return True
+    return False
+```
+
+### Testing Motif Emergence
+
+```python
+import numpy as np
+import rustworkx as rx
+
+motif_tests = [
+    ("edge", exists_edge),
+    ("wedge", exists_wedge_len2),
+    ("3-star", exists_3star),
+    ("4-star", exists_4star),
+    ("triangle", exists_triangle),
+    ("K4", exists_K4),
+]
+
+zs = -np.array([2, 3/2, 4/3, 5/4, 1, 2/3, 1/2], dtype=float)
+Ns = [10**i for i in range(1, 3)]
+trials = 20
+
+for z in zs:
+    print(f"\n=== z = {z:.3f} ===")
+    for N in Ns:
+        p = float(N**z)
+        
+        indicators = np.zeros((trials, len(motif_tests)), dtype=int)
+        for t in range(trials):
+            G = rx.undirected_gnp_random_graph(N, p, seed=t)
+            indicators[t, :] = [int(fn(G)) for _, fn in motif_tests]
+        
+        mean_met = indicators.sum(axis=1).mean()
+        print(f"N={N:>6}, p={p:.2e} | motifs present = {mean_met:.1f}/{len(motif_tests)}")
+```
+
+---
+
 ## Summary
 
 | Section | Key Concepts |
@@ -183,6 +348,8 @@ The Poisson approximation becomes exact in the limit $N \to \infty$ with $\langl
 | **3.2** | Random network models: $G(N,p)$ and $G(N,L)$ |
 | **3.3** | Number of links follows binomial distribution; $\langle L \rangle = p \cdot N(N-1)/2$ |
 | **3.4** | Degree distribution: Binomial (exact) or Poisson (sparse networks) |
+| **3.5** | Giant component emerges at $\langle k \rangle = 1$; connected at $\langle k \rangle > \ln N$ |
+| **Box 3.5** | Subgraph thresholds: $p(N) \sim N^z$ determines which motifs appear |
 
 ---
 
