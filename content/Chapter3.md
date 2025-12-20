@@ -13,6 +13,8 @@ Companion notes for [Network Science](http://networksciencebook.com/) by Albert-
 - **3.4** Degree Distribution (Binomial & Poisson)
 - **3.5** The Evolution of a Random Network
 - **Box 3.5** Network Evolution in Graph Theory
+- **3.7** Real Networks are Supercritical
+- **3.8** Small Worlds
 
 ---
 
@@ -341,6 +343,125 @@ for z in zs:
 
 ---
 
+## 3.7 Real Networks are Supercritical
+
+Two predictions of random network theory are of direct importance for real networks:
+
+1. Once the average degree exceeds $\langle k \rangle = 1$, a **giant component** should emerge that contains a finite fraction of all nodes. Hence only for $\langle k \rangle > 1$ do nodes organize themselves into a recognizable network.
+
+2. For $\langle k \rangle > \ln N$, all components are absorbed by the giant component, resulting in a **single connected network**.
+
+### Testing with Real Data
+
+```python
+import itertools
+import rustworkx as rx
+from pathlib import Path
+import numpy as np
+
+# Load Internet topology data
+DATADIR = Path('data')
+file = 'internet.edgelist.txt'
+dataset = DATADIR / file
+
+with dataset.open() as f:
+    data = [tuple(l.strip().split('\t')) for l in f.readlines()]
+
+edges = [tuple(map(int, x)) for x in data]
+nodes = list(set(itertools.chain.from_iterable(data)))
+
+G = rx.PyGraph()
+G.add_nodes_from(nodes)
+G.add_edges_from_no_data(edges)
+
+N = len(nodes)
+L = len(edges)
+avg_degree = 2 * L / N
+lnN = np.log(N)
+
+print('Internet Data')
+print(f"Nodes (N):     {N}")
+print(f"Edges (L):     {L}")
+print(f"⟨k⟩:           {avg_degree:.2f}")
+print(f"ln(N):         {lnN:.2f}")
+print(f"⟨k⟩ > 1?       {avg_degree > 1}")
+print(f"⟨k⟩ > ln(N)?   {avg_degree > lnN}")
+```
+
+Real networks consistently satisfy both conditions, confirming they are in the **supercritical regime**.
+
+---
+
+## 3.8 Small Worlds
+
+The "small world" phenomenon means that the average path length depends **logarithmically** on the system size. That is, the average distance $\langle d \rangle$ between two nodes scales as $\ln N$ rather than $N$.
+
+### Counting Nodes at Distance d
+
+The expected number of nodes within distance $d$ from a starting node (in a tree-like approximation):
+
+$$N(d) \approx 1 + \langle k \rangle + \langle k \rangle^2 + \cdots + \langle k \rangle^d = \frac{\langle k \rangle^{d+1} - 1}{\langle k \rangle - 1}$$
+
+```python
+def nodes_within_distance(k: float, d: int) -> float:
+    """
+    Expected number of nodes within distance d in the branching approximation:
+        1 + k + k^2 + ... + k^d
+    """
+    if np.isclose(k, 1.0):
+        return d + 1
+    return (k**(d + 1) - 1) / (k - 1)
+```
+
+### Deriving Average Distance
+
+Since $N(d)$ cannot exceed $N$, we set $N(d_{max}) \approx N$. For $\langle k \rangle \gg 1$:
+
+$$\langle k \rangle^{d_{max}} \approx N$$
+
+Taking logarithms:
+
+$$d_{max} \approx \frac{\ln N}{\ln \langle k \rangle}$$
+
+This better approximates the **average distance** $\langle d \rangle$ than the diameter $d_{max}$, because the diameter is dominated by a few extreme paths while $\langle d \rangle$ averages over all node pairs:
+
+$$\langle d \rangle \approx \frac{\ln N}{\ln \langle k \rangle}$$
+
+### Verifying the Small World Formula
+
+```python
+import rustworkx as rx
+import numpy as np
+
+def avg_degree_fn(G):
+    return 2 * G.num_edges() / G.num_nodes()
+
+def graph_diameter(G):
+    """Compute diameter using all-pairs shortest paths."""
+    apsp = rx.all_pairs_dijkstra_path_lengths(G, edge_cost_fn=lambda _: 1)
+    return max(dist for mapping in apsp.values() for dist in mapping.values())
+
+N, p = 1000, 0.01
+G = rx.undirected_gnp_random_graph(N, p, seed=67)
+
+avg_degree = avg_degree_fn(G)
+diameter = graph_diameter(G)
+empirical_avg_d = rx.unweighted_average_shortest_path_length(G)
+predicted_avg_d = np.log(G.num_nodes()) / np.log(avg_degree)
+
+print(f"Number of nodes: {G.num_nodes():,}")
+print(f"Average degree: {avg_degree:.3f}")
+print(f"Diameter (max shortest path): {diameter}")
+print(f"Measured ⟨d⟩: {empirical_avg_d:.3f}")
+print(f"Predicted ⟨d⟩ ≈ ln(N)/ln⟨k⟩: {predicted_avg_d:.3f}")
+```
+
+### Practical Implications
+
+The small world formula allows us to estimate path lengths in large networks without computing all pairwise distances. This is the mathematical basis for phenomena like "six degrees of separation" — using knowledge of the average degree and network size, we can predict that social networks have short paths connecting any two people.
+
+---
+
 ## Summary
 
 | Section | Key Concepts |
@@ -350,6 +471,8 @@ for z in zs:
 | **3.4** | Degree distribution: Binomial (exact) or Poisson (sparse networks) |
 | **3.5** | Giant component emerges at $\langle k \rangle = 1$; connected at $\langle k \rangle > \ln N$ |
 | **Box 3.5** | Subgraph thresholds: $p(N) \sim N^z$ determines which motifs appear |
+| **3.7** | Real networks are supercritical: $\langle k \rangle > 1$ and often $\langle k \rangle > \ln N$ |
+| **3.8** | Small worlds: $\langle d \rangle \approx \ln N / \ln \langle k \rangle$ |
 
 ---
 
