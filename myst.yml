@@ -12,7 +12,6 @@ project:
       template: plain_latex_book
       output: exports/book.pdf
   toc:
-    # - file: README.md
     - file: content/intro.md
     - file: content/Chapter2.md
     - file: content/Chapter3.md
@@ -24,10 +23,8 @@ site:
     folders: true
     hide_footer_badge: true
     hide_outline: false
-    # logo: static/ns-logo.svg        # <- your logo file (example path)
-    # logo_dark: static/ns-logo-dark.svg   # optional
     logo_text: "Network Science with Rustworkx"    
-    logo_url: "https://github.com/grogs84/networkscience"  # or "/"
+    logo_url: "/" # "https://github.com/grogs84/networkscience"
   parts:
     primary_sidebar_footer: ""
   nav: []

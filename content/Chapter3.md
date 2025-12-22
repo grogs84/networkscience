@@ -15,6 +15,7 @@ Companion notes for [Network Science](http://networksciencebook.com/) by Albert-
 - **Box 3.5** Network Evolution in Graph Theory
 - **3.7** Real Networks are Supercritical
 - **3.8** Small Worlds
+- **3.9** Clustering Coefficient
 
 ---
 
@@ -462,6 +463,96 @@ The small world formula allows us to estimate path lengths in large networks wit
 
 ---
 
+## 3.9 Clustering Coefficient
+
+The degree of a node contains no information about the relationship between a node's neighbors. The **local clustering coefficient** $C_i$ measures the density of links in node $i$'s immediate neighborhood:
+
+- $C_i = 0$ means there are no links between node $i$'s neighbors
+- $C_i = 1$ means each of node $i$'s neighbors link to each other
+
+### Expected Clustering in Random Networks
+
+In a random network, the probability that two of node $i$'s neighbors link to each other is $p$. Since there are $k_i(k_i - 1)/2$ possible links between the $k_i$ neighbors of node $i$, the expected number of edges among neighbors is:
+
+$$\langle L_i \rangle = p \frac{k_i(k_i - 1)}{2}$$
+
+Thus the expected local clustering coefficient is:
+
+$$\mathbb{E}[C_i] = p \approx \frac{\langle k \rangle}{N}$$
+
+### Key Predictions
+
+1. For fixed $\langle k \rangle$, the larger the network, the smaller the clustering coefficient. The local clustering coefficient $C_i$ decreases as $1/N$.
+
+2. **In a random network, the local clustering coefficient is independent of the node's degree.**
+
+```python
+import numpy as np
+
+N, p = 1000, 0.001
+
+# Expected values
+expected_links = p * (N * (N - 1)) / 2
+expected_degree = p * (N - 1)
+expected_C = expected_degree / N
+
+print(f"Expected links: {expected_links:.1f}")
+print(f"Expected degree: {expected_degree:.3f}")
+print(f"Expected clustering coefficient: {expected_C:.6f}")
+print(f"Note: E[C] ≈ p = {p}")
+```
+
+### Computing Local Clustering Coefficient
+
+```python
+from itertools import combinations
+import rustworkx as rx
+
+def local_clustering_coef(G, i: int) -> float:
+    """C_i = (# edges among neighbors) / (k_i choose 2)."""
+    nbrs = list(G.neighbors(i))
+    k = len(nbrs)
+    if k < 2:
+        return 0.0
+    
+    edges_between = sum(G.has_edge(u, v) for u, v in combinations(nbrs, 2))
+    possible = k * (k - 1) / 2
+    return edges_between / possible
+```
+
+### Comparing Random Networks vs Real Networks
+
+Real networks typically have much higher clustering than random networks with the same $N$ and $\langle k \rangle$. This is one of the key ways real networks differ from the Erdős-Rényi model.
+
+```python
+from collections import defaultdict
+import matplotlib.pyplot as plt
+
+# Compute C(k): average clustering for nodes with degree k
+by_k = defaultdict(list)
+for i in G.node_indices():
+    k = G.degree(i)
+    c = local_clustering_coef(G, i)
+    by_k[k].append(c)
+
+ks = np.array(sorted(by_k.keys()))
+Ck = np.array([np.mean(by_k[k]) for k in ks])
+
+# Plot C(k) vs k
+mask = (ks > 0) & (Ck > 0)
+plt.scatter(ks[mask], Ck[mask], s=18, alpha=0.9)
+plt.axhline(Ci.mean(), color='green', label='⟨C⟩ measured')
+plt.axhline(p, color='orange', label='E[C] = p')
+plt.xscale("log")
+plt.yscale("log")
+plt.xlabel("k")
+plt.ylabel("C(k)")
+plt.legend()
+plt.show()
+```
+
+---
+
 ## Summary
 
 | Section | Key Concepts |
@@ -473,6 +564,7 @@ The small world formula allows us to estimate path lengths in large networks wit
 | **Box 3.5** | Subgraph thresholds: $p(N) \sim N^z$ determines which motifs appear |
 | **3.7** | Real networks are supercritical: $\langle k \rangle > 1$ and often $\langle k \rangle > \ln N$ |
 | **3.8** | Small worlds: $\langle d \rangle \approx \ln N / \ln \langle k \rangle$ |
+| **3.9** | Clustering coefficient: $\mathbb{E}[C_i] = p \approx \langle k \rangle / N$; independent of degree in random networks |
 
 ---
 
