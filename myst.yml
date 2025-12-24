@@ -15,6 +15,7 @@ project:
     - file: content/intro.md
     - file: content/Chapter2.md
     - file: content/Chapter3.md
+    - file: content/Chapter4.md
 
 site:
   template: book-theme
